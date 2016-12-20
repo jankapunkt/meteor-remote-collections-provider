@@ -2,7 +2,7 @@ Package.describe({
   name: 'jkuester:remote-collections-provider',
   version: '0.0.1',
   // Brief, one-line summary of the package.
-  summary: 'Provides functionality to manage methods, collections and publications for the jokester:remote-collections package.',
+  summary: 'Optional default provider for jkuester:remote-collections',
   // URL to the Git repository containing the source code for this package.
   git: 'https://github.com/jankapunkt/meteor-remote-collections-provider',
   // By default, Meteor will default to using README.md for documentation.
