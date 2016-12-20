@@ -167,21 +167,6 @@ Tinytest.add('remote-collections-provider - collections - all collections can be
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
- removePublication(name) {
- check(name, String);
- //Meteor.server.publication_handlers //FIXME
- delete this.publications[name];
- }
-
- getPublication(name) {
- return this.publications[name];
- }
-
- getAllPublicationNames() {
- return Object.keys(this.publications);
- }
- * */
 
 Tinytest.add('remote-collections-provider - pubications - publications are added', function (test) {
     const publication = "somePublication";
@@ -199,7 +184,7 @@ Tinytest.add('remote-collections-provider - pubications - publications are added
     //TEST IF EXISTS
     testExists(test, RemoteCollectionsProvider.getPublication(publication), publication);
     testExists(test, Meteor.server.publish_handlers[publication], "publish handler");
-    test.equal( Meteor.server.publish_handlers[publication], pubFunc);
+    test.equal(Meteor.server.publish_handlers[publication], pubFunc);
 });
 
 Tinytest.add('remote-collections-provider - pubications - publications names can be removed', function (test) {
@@ -224,13 +209,13 @@ Tinytest.add('remote-collections-provider - pubications - publications can be re
     }
     RemoteCollectionsProvider.addPublication(publication, pubFunc, true);
     const retrievedPub = RemoteCollectionsProvider.getPublication(publication);
-    testExists(test, retrievedPub , publication);
+    testExists(test, retrievedPub, publication);
     test.equal(retrievedPub, pubFunc);
 });
 
 Tinytest.add('remote-collections-provider - pubications - all publications can be retrieved', function (test) {
     const allPubs = RemoteCollectionsProvider.getAllPublicationNames();
-    testExists(test, allPubs , "all pubs");
+    testExists(test, allPubs, "all pubs");
     test.equal(allPubs.length, 1);
 });
 

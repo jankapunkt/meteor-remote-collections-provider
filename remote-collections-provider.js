@@ -3,6 +3,10 @@ import {Match} from 'meteor/check';
 import {Meteor} from 'meteor/meteor';
 
 class RemoteProvider {
+
+    /**
+     * Initializes default values, so the package can be tested from remote by simply adding it to an application
+     */
     constructor() {
         this.publications = {};
         this.methods = {};
@@ -35,11 +39,17 @@ class RemoteProvider {
         Meteor.methods(this.methods);
     }
 
+    /**
+     * Removed the defaults and makes the class ready to be used in your app.
+     */
     init() {
         this.removeDefaults();
         //something else here?
     }
 
+    /**
+     * Removes default methods and collection entries.
+     */
     removeDefaults() {
         this.removeMethod(this.HAS_REMOTE_COLLECTIONS_PROVIDER);
         this.removeMethod(this.DEFAULT_GET_COLLECTIONS);
@@ -123,7 +133,7 @@ class RemoteProvider {
 
     removePublication(name) {
         check(name, String);
-        delete Meteor.server.publish_handlers[name];
+        delete /**/Meteor.server.publish_handlers[name];
         delete this.publications[name];
     }
 
