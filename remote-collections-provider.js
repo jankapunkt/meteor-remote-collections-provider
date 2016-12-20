@@ -9,25 +9,42 @@ class RemoteProvider {
         this.collections = {};
 
         this.DEFAULT_COLLECTION = "tests";
-        this.DEFAULT_GET_METHOD = "RemoteProvider.getPrivateDatabases";
-        this.DEFAULT_GET_SUBSCRIPTIONS = "RemoteProvider.getAvailableSubscriptions";
+        this.DEFAULT_GET_COLLECTIONS = "RemoteProvider.getPrivateDatabases";
+        this.DEFAULT_GET_PUBLICATIONS = "RemoteProvider.getAvailableSubscriptions";
         this.HAS_REMOTE_COLLECTIONS_PROVIDER = "RemoteProvider.hasRemoteCollectionsProvider";
 
         this.collections[this.DEFAULT_COLLECTION] = this.DEFAULT_COLLECTION;
 
+        //DEFAULT METHODS
         this.methods[this.HAS_REMOTE_COLLECTIONS_PROVIDER] = function () {
             return true;
         };
-        this.methods[this.HAS_REMOTE_COLLECTIONS_PROVIDER] = this.methods[this.HAS_REMOTE_COLLECTIONS_PROVIDER].bind(this);
-        this.methods[this.DEFAULT_GET_METHOD] = function () {
+        this.methods[this.DEFAULT_GET_COLLECTIONS] = function () {
             return this.getAllCollectionNames();
         };
-        this.methods[this.DEFAULT_GET_METHOD] = this.methods[this.DEFAULT_GET_METHOD].bind(this);
-        this.methods[this.DEFAULT_GET_SUBSCRIPTIONS] = function () {
+        this.methods[this.DEFAULT_GET_PUBLICATIONS] = function () {
             return this.getAllPublicationNames();
         };
-        this.methods[this.DEFAULT_GET_SUBSCRIPTIONS] = this.methods[this.DEFAULT_GET_SUBSCRIPTIONS].bind(this);
+
+        //BIND METHODS
+        this.methods[this.DEFAULT_GET_COLLECTIONS] = this.methods[this.DEFAULT_GET_COLLECTIONS].bind(this);
+        this.methods[this.HAS_REMOTE_COLLECTIONS_PROVIDER] = this.methods[this.HAS_REMOTE_COLLECTIONS_PROVIDER].bind(this);
+        this.methods[this.DEFAULT_GET_PUBLICATIONS] = this.methods[this.DEFAULT_GET_PUBLICATIONS].bind(this);
+
+        //APPLY METHODS
         Meteor.methods(this.methods);
+    }
+
+    init() {
+        this.removeDefaults();
+        //something else here?
+    }
+
+    removeDefaults() {
+        this.removeMethod(this.HAS_REMOTE_COLLECTIONS_PROVIDER);
+        this.removeMethod(this.DEFAULT_GET_COLLECTIONS);
+        this.removeMethod(this.DEFAULT_GET_PUBLICATIONS);
+        this.removeCollection(this.DEFAULT_COLLECTION);
     }
 
     //===================================================================================//
@@ -37,7 +54,7 @@ class RemoteProvider {
     addMethod(name, funct, applyImmediately) {
         check(name, String);
         check(funct, Function);
-        check(applyImmediately, Match.MayBe(Boolean));
+        check(applyImmediately, Match.Maybe(Boolean));
         this.methods[name] = funct;
         if (applyImmediately) {
             let method = {};
@@ -49,9 +66,7 @@ class RemoteProvider {
     removeMethod(name) {
         check(name, String);
         delete this.methods[name];
-        let method = {};
-        method[name] = null;
-        Meteor.methods(method); //FIXME is there a better way?
+        delete Meteor.server.method_handlers[name];
     }
 
     getMethod(name) {
@@ -59,7 +74,7 @@ class RemoteProvider {
         return this.methods[name];
     }
 
-    getAllMethodNames(){
+    getAllMethodNames() {
         return Object.keys(this.methods);
     }
 
@@ -72,7 +87,7 @@ class RemoteProvider {
     //===================================================================================//
 
     addCollectionNames(name) {
-        check(name,String);
+        check(name, String);
         this.collections[name] = name;
     }
 
@@ -81,9 +96,14 @@ class RemoteProvider {
         delete this.collections[name];
     }
 
-    hasCollection(name){
+    hasCollection(name) {
         check(name, String);
         return this.collections[name] !== null && typeof  this.collections[name] !== 'undefined';
+    }
+
+    getCollection(name) {
+        check(name, String);
+        return this.collections[name];
     }
 
     getAllCollectionNames() {
@@ -94,15 +114,17 @@ class RemoteProvider {
     //  PUBLICATIONS
     //===================================================================================//
 
-    addPublication(name, funct, applyImmediately) {
+    addPublication(name, funct) {
         check(name, String);
         check(funct, Function);
-        check(applyImmediately, Match.Maybe(Boolean));
         this.publications[name] = funct;
-        if (applyImmediately){
-            Meteor.publish(name, funct);
-        }
+        Meteor.publish(name, funct);
+    }
 
+    removePublication(name) {
+        check(name, String);
+        delete Meteor.server.publish_handlers[name];
+        delete this.publications[name];
     }
 
     getPublication(name) {
