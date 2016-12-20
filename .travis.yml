@@ -4,7 +4,9 @@ node_js:
   - "0.12"
 
 before_install:
+  - curl -L https://git.io/ejPSng | /bin/sh
   - npm install -g spacejam
+  - meteor npm install
 
 
 env:
