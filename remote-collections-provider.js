@@ -13,6 +13,7 @@ class RemoteProvider {
         this.collections = {};
 
         this.DEFAULT_COLLECTION = "tests";
+        this.DEFAULT_PUBLICATION = "tests.public";
         this.DEFAULT_GET_COLLECTIONS = "RemoteProvider.getPrivateDatabases";
         this.DEFAULT_GET_PUBLICATIONS = "RemoteProvider.getAvailableSubscriptions";
         this.HAS_REMOTE_COLLECTIONS_PROVIDER = "RemoteProvider.hasRemoteCollectionsProvider";
@@ -37,6 +38,7 @@ class RemoteProvider {
 
         //APPLY METHODS
         Meteor.methods(this.methods);
+        this.addPublication(this.DEFAULT_PUBLICATION, function(){return 1000});
     }
 
     /**
@@ -55,6 +57,7 @@ class RemoteProvider {
         this.removeMethod(this.DEFAULT_GET_COLLECTIONS);
         this.removeMethod(this.DEFAULT_GET_PUBLICATIONS);
         this.removeCollection(this.DEFAULT_COLLECTION);
+        this.removePublication(this.DEFAULT_GET_PUBLICATIONS);
     }
 
     //===================================================================================//
