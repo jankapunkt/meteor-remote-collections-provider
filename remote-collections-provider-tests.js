@@ -70,59 +70,42 @@ Tinytest.add('remote-collections-provider - init - defaults not callable after i
 //      METHODS
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
+const methodName = "someMethod";
+const methodFct = function () {
+    return "theMethod";
+}
 
 Tinytest.add('remote-collections-provider - methods - methods added working', function (test) {
-    const methodName = "someMethod";
-    const method = function () {
-        return "theMethod";
-    }
-    testExistsNot(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
-    RemoteCollectionsProvider.addMethod(methodName, method, true);
-    testExists(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
+    addMethod(test, methodName, methodFct, true)
     testMethodCall(test, methodName, "theMethod");
 });
 
 Tinytest.add('remote-collections-provider - methods - methods remove working', function (test) {
-    const methodName = "someMethod";
-    testMethodCall(test, methodName, "theMethod");
-    testExists(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
-    RemoteCollectionsProvider.removeMethod(methodName);
-    testExistsNot(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
+    removeMethod(test, methodName);
     test.throws(function () {
         Meteor.call(methodName);
     });
 });
 
 Tinytest.add('remote-collections-provider - methods - methods retrieve working', function (test) {
-    const methodName = "someMethod";
-    const method = function () {
-        return "theMethod";
-    }
-    testExistsNot(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
-    RemoteCollectionsProvider.addMethod(methodName, method, true);
+    addMethod(test, methodName, methodFct, true)
+
     const retrievedMethod = RemoteCollectionsProvider.getMethod(methodName);
     testExists(test, retrievedMethod, methodName);
     test.equal(typeof retrievedMethod, "function");
-    test.equal(retrievedMethod, method);
+    test.equal(retrievedMethod, methodFct);
 
     const allMethods = RemoteCollectionsProvider.getAllMethodNames();
     testExists(test, allMethods, "allMethods");
     test.equal(allMethods.length, 1);
 
     //remove for next test
-    RemoteCollectionsProvider.removeMethod(methodName);
+    removeMethod(test, methodName);
 });
 
 Tinytest.add('remote-collections-provider - methods - methods apply working', function (test) {
-    const methodName = "someMethod";
-    const method = function () {
-        return "theMethod";
-    }
-    testExistsNot(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
-    RemoteCollectionsProvider.addMethod(methodName, method, false); //false so not aply immediately
-    testExists(test, RemoteCollectionsProvider.getMethod(methodName), methodName); //should already exist
-    test.throws(function () { //but throw a call error
+    addMethod(test, methodName, methodFct, false); //dont apply immediately
+    test.throws(function () { //to throw a call error
         Meteor.call(methodName);
     });
     RemoteCollectionsProvider.applyAllMethods(); //but when we apply...
@@ -134,25 +117,18 @@ Tinytest.add('remote-collections-provider - methods - methods apply working', fu
 //      COLLECTIONS
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+const collectionName = "someCollection";
 
 Tinytest.add('remote-collections-provider - collections - collection names are added', function (test) {
-    const collectionName = "someCollection";
-    testExistsNot(test, RemoteCollectionsProvider.getCollection(collectionName), collectionName);
-    RemoteCollectionsProvider.addCollectionNames(collectionName);
-    testExists(test, RemoteCollectionsProvider.getCollection(collectionName), collectionName);
+    addToCollection(test, collectionName);
 });
 
 Tinytest.add('remote-collections-provider - collections - collection names can be removed', function (test) {
-    const collectionName = "someCollection";
-    testExists(test, RemoteCollectionsProvider.getCollection(collectionName), collectionName);
-    RemoteCollectionsProvider.removeCollection(collectionName);
-    testExistsNot(test, RemoteCollectionsProvider.getCollection(collectionName), collectionName);
+    removeCollection(test, collectionName);
 });
 
 Tinytest.add('remote-collections-provider - collections - collection names can be checke dif exist', function (test) {
-    const collectionName = "someCollection";
-    testExistsNot(test, RemoteCollectionsProvider.getCollection(collectionName), collectionName);
-    RemoteCollectionsProvider.addCollectionNames(collectionName);
+    addToCollection(test, collectionName);
     test.equal(RemoteCollectionsProvider.hasCollection(collectionName), true);
 });
 
@@ -168,51 +144,24 @@ Tinytest.add('remote-collections-provider - collections - all collections can be
 //      PUBLICATIONS
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
+const publicationName = "somePublication";
+const publicationFunction = function () {
+    return testCollection.find({});
+}
 
 Tinytest.add('remote-collections-provider - pubications - publications are added', function (test) {
-    const publication = "somePublication";
-    const pubFunc = function () {
-        return testCollection.find({});
-    }
-
-    //TEST IF NOT EXISTS
-    testExistsNot(test, RemoteCollectionsProvider.getPublication(publication), publication);
-    testExistsNot(test, Meteor.server.publish_handlers[publication], "publish handler");
-
-    //ADD
-    RemoteCollectionsProvider.addPublication(publication, pubFunc, true);
-
-    //TEST IF EXISTS
-    testExists(test, RemoteCollectionsProvider.getPublication(publication), publication);
-    testExists(test, Meteor.server.publish_handlers[publication], "publish handler");
-    test.equal(Meteor.server.publish_handlers[publication], pubFunc);
+    addPublication(test, publicationName, publicationFunction);
 });
 
 Tinytest.add('remote-collections-provider - pubications - publications names can be removed', function (test) {
-    const publication = "somePublication";
-
-    //FIRST TEST IF EXISTS (FROM LAST TEST
-    testExists(test, RemoteCollectionsProvider.getPublication(publication), publication);
-    testExists(test, Meteor.server.publish_handlers[publication], "publish handler");
-
-    //THEN REMOVE
-    RemoteCollectionsProvider.removePublication(publication);
-
-    //TEST IF NOT EXISTS
-    testExistsNot(test, RemoteCollectionsProvider.getPublication(publication), publication);
-    testExistsNot(test, Meteor.server.publish_handlers[publication], "publish handler");
+    removePublication(test, publicationName);
 });
 
 Tinytest.add('remote-collections-provider - pubications - publications can be retrieved', function (test) {
-    const publication = "somePublication";
-    const pubFunc = function () {
-        return testCollection.find({});
-    }
-    RemoteCollectionsProvider.addPublication(publication, pubFunc, true);
-    const retrievedPub = RemoteCollectionsProvider.getPublication(publication);
-    testExists(test, retrievedPub, publication);
-    test.equal(retrievedPub, pubFunc);
+    addPublication(test, publicationName, publicationFunction);
+    const retrievedPub = RemoteCollectionsProvider.getPublication(publicationName);
+    testExists(test, retrievedPub, publicationName);
+    test.equal(retrievedPub, publicationFunction);
 });
 
 Tinytest.add('remote-collections-provider - pubications - all publications can be retrieved', function (test) {
@@ -255,4 +204,53 @@ function testMethodCall(test, methodName, expectedResult) {
     const methodResult = Meteor.call(methodName);
     testExists(test, methodResult, "result of " + methodName);
     test.equal(methodResult, expectedResult);
+}
+
+
+function addMethod(test, methodName, method, applyImmediately=true) {
+    testExistsNot(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
+    RemoteCollectionsProvider.addMethod(methodName, method, applyImmediately);
+    testExists(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
+}
+
+function addToCollection(test, collectionName){
+    testExistsNot(test, RemoteCollectionsProvider.getCollection(collectionName), collectionName);
+    RemoteCollectionsProvider.addCollectionNames(collectionName);
+    testExists(test, RemoteCollectionsProvider.getCollection(collectionName), collectionName);
+}
+
+function removeCollection(test, collectionName) {
+    testExists(test, RemoteCollectionsProvider.getCollection(collectionName), collectionName);
+    RemoteCollectionsProvider.removeCollection(collectionName);
+    testExistsNot(test, RemoteCollectionsProvider.getCollection(collectionName), collectionName);
+}
+
+function addPublication(test, publication, pubFunc) {
+    //TEST IF NOT EXISTS
+    testExistsNot(test, RemoteCollectionsProvider.getPublication(publication), publication);
+    testExistsNot(test, Meteor.server.publish_handlers[publication], "publish handler");
+    //ADD
+    RemoteCollectionsProvider.addPublication(publication, pubFunc, true);
+    //TEST IF EXISTS
+    testExists(test, RemoteCollectionsProvider.getPublication(publication), publication);
+    testExists(test, Meteor.server.publish_handlers[publication], "publish handler");
+    test.equal(Meteor.server.publish_handlers[publication], pubFunc);
+}
+
+function removePublication(test, publication) {
+    //FIRST TEST IF EXISTS (FROM LAST TEST
+    testExists(test, RemoteCollectionsProvider.getPublication(publication), publication);
+    testExists(test, Meteor.server.publish_handlers[publication], "publish handler");
+    //THEN REMOVE
+    RemoteCollectionsProvider.removePublication(publication);
+    //TEST IF NOT EXISTS
+    testExistsNot(test, RemoteCollectionsProvider.getPublication(publication), publication);
+    testExistsNot(test, Meteor.server.publish_handlers[publication], "publish handler");
+}
+
+function removeMethod(test, methodName) {
+    testMethodCall(test, methodName, "theMethod");
+    testExists(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
+    RemoteCollectionsProvider.removeMethod(methodName);
+    testExistsNot(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
 }
