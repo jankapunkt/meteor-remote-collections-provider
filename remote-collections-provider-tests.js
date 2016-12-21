@@ -253,7 +253,7 @@ function removeMethod(test, methodName) {
 }
 
 
-function testAllAddedEntries(test, list, expectedCount, ) {
+function testAllAddedEntries(test, list, expectedCount) {
     testExists(test, list, "all entries list");
     test.equal(list.length, expectedCount);
 }
