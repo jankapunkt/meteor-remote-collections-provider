@@ -30,8 +30,7 @@ Tinytest.add('remote-collections-provider - startup - there are default callable
 
 Tinytest.add('remote-collections-provider - startup - there are default collections on startup', function (test) {
     const allCollections = RemoteCollectionsProvider.getAllCollectionNames();
-    testExists(test, allCollections);
-    test.equal(allCollections.length, 1);
+    testAllAddedEntries(test, allCollections, 1);
     test.equal(allCollections[0], "tests");
 });
 
@@ -41,16 +40,17 @@ Tinytest.add('remote-collections-provider - init - init throws no errors', funct
 });
 
 Tinytest.add('remote-collections-provider - init - init removes all default collections', function (test) {
-    const allCollections = RemoteCollectionsProvider.getAllCollectionNames();
-    testExists(test, allCollections);
-    test.equal(allCollections.length, 0);
+    testAllAddedEntries(test, RemoteCollectionsProvider.getAllCollectionNames(), 0);
 });
 
 Tinytest.add('remote-collections-provider - init - init removes all default methods', function (test) {
-    const defaultMethods = RemoteCollectionsProvider.getAllMethodNames();
-    testExists(test, defaultMethods);
-    test.equal(defaultMethods.length, 0);
+    testAllAddedEntries(test, RemoteCollectionsProvider.getAllMethodNames(), 0);
 });
+
+Tinytest.add('remote-collections-provider - init - init removes all default publications', function (test) {
+    testAllAddedEntries(test, RemoteCollectionsProvider.getAllPublicationNames(), 0);
+});
+
 
 Tinytest.add('remote-collections-provider - init - defaults not callable after init', function (test) {
     test.throws(function () {
@@ -94,16 +94,17 @@ Tinytest.add('remote-collections-provider - methods - methods retrieve working',
     testExists(test, retrievedMethod, methodName);
     test.equal(typeof retrievedMethod, "function");
     test.equal(retrievedMethod, methodFct);
-
-    const allMethods = RemoteCollectionsProvider.getAllMethodNames();
-    testExists(test, allMethods, "allMethods");
-    test.equal(allMethods.length, 1);
-
-    //remove for next test
-    removeMethod(test, methodName);
 });
 
+Tinytest.add('remote-collections-provider - methods - get all methods working', function (test) {
+    testAllAddedEntries(test, RemoteCollectionsProvider.getAllMethodNames(), 1);
+});
+
+
 Tinytest.add('remote-collections-provider - methods - methods apply working', function (test) {
+    //first remove last method
+    removeMethod(test, methodName);
+
     addMethod(test, methodName, methodFct, false); //dont apply immediately
     test.throws(function () { //to throw a call error
         Meteor.call(methodName);
@@ -133,9 +134,7 @@ Tinytest.add('remote-collections-provider - collections - collection names can b
 });
 
 Tinytest.add('remote-collections-provider - collections - all collections can be retrieved', function (test) {
-    const allCollections = RemoteCollectionsProvider.getAllCollectionNames();
-    testExists(test, allCollections, "allCollections");
-    test.equal(allCollections.length, 1);
+    testAllAddedEntries(test, RemoteCollectionsProvider.getAllCollectionNames(), 1);
 });
 
 
@@ -165,9 +164,7 @@ Tinytest.add('remote-collections-provider - pubications - publications can be re
 });
 
 Tinytest.add('remote-collections-provider - pubications - all publications can be retrieved', function (test) {
-    const allPubs = RemoteCollectionsProvider.getAllPublicationNames();
-    testExists(test, allPubs, "all pubs");
-    test.equal(allPubs.length, 1);
+    testAllAddedEntries(test, RemoteCollectionsProvider.getAllPublicationNames(), 1);
 });
 
 
@@ -253,4 +250,10 @@ function removeMethod(test, methodName) {
     testExists(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
     RemoteCollectionsProvider.removeMethod(methodName);
     testExistsNot(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
+}
+
+
+function testAllAddedEntries(test, list, expectedCount, ) {
+    testExists(test, list, "all entries list");
+    test.equal(list.length, expectedCount);
 }
