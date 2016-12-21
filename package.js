@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jkuester:remote-collections-provider',
-  version: '0.0.1',
+  version: '0.0.2',
   // Brief, one-line summary of the package.
   summary: 'Optional default provider for jkuester:remote-collections',
   // URL to the Git repository containing the source code for this package.
@@ -21,6 +21,7 @@ Package.onTest(function(api) {
   api.use('ecmascript');
   api.use('tinytest');
   api.use('check');
+  api.use('audit-argument-checks');
   api.use('jkuester:remote-collections-provider');
   api.mainModule('remote-collections-provider-tests.js', "server");
 });

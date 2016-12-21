@@ -3,6 +3,8 @@ import {Tinytest} from "meteor/tinytest";
 // Import and rename a variable exported by remote-collections-provider.js.
 import {RemoteCollectionsProvider} from "meteor/jkuester:remote-collections-provider";
 
+import {} from 'meteor/audit-argument-checks';
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //      STARTUP / INITIAL VALUES
@@ -23,7 +25,7 @@ Tinytest.add('remote-collections-provider - startup - there are default methods 
 Tinytest.add('remote-collections-provider - startup - there are default callable via Meteor.call on startup', function (test) {
     testMethodCall(test, RemoteCollectionsProvider.HAS_REMOTE_COLLECTIONS_PROVIDER, true);
     testMethodCall(test, RemoteCollectionsProvider.DEFAULT_GET_COLLECTIONS, [RemoteCollectionsProvider.DEFAULT_COLLECTION]);
-    testMethodCall(test, RemoteCollectionsProvider.DEFAULT_GET_PUBLICATIONS, []);
+    testMethodCall(test, RemoteCollectionsProvider.DEFAULT_GET_PUBLICATIONS, [RemoteCollectionsProvider.DEFAULT_PUBLICATION]);
 });
 
 Tinytest.add('remote-collections-provider - startup - there are default collections on startup', function (test) {

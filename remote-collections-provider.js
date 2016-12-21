@@ -57,7 +57,7 @@ class RemoteProvider {
         this.removeMethod(this.DEFAULT_GET_COLLECTIONS);
         this.removeMethod(this.DEFAULT_GET_PUBLICATIONS);
         this.removeCollection(this.DEFAULT_COLLECTION);
-        this.removePublication(this.DEFAULT_GET_PUBLICATIONS);
+        this.removePublication(this.DEFAULT_PUBLICATION);
     }
 
     //===================================================================================//
@@ -136,11 +136,12 @@ class RemoteProvider {
 
     removePublication(name) {
         check(name, String);
-        delete /**/Meteor.server.publish_handlers[name];
+        delete Meteor.server.publish_handlers[name];
         delete this.publications[name];
     }
 
     getPublication(name) {
+        check(name, String);
         return this.publications[name];
     }
 
