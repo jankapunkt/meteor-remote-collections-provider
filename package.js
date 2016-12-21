@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jkuester:remote-collections-provider',
-  version: '0.0.2',
+  version: '0.1.0',
   // Brief, one-line summary of the package.
   summary: 'Optional default provider for jkuester:remote-collections',
   // URL to the Git repository containing the source code for this package.
