@@ -53,11 +53,11 @@ class RemoteProvider {
      * Removes default methods and collection entries.
      */
     removeDefaults() {
-        this.removeMethod(this.HAS_REMOTE_COLLECTIONS_PROVIDER);
-        this.removeMethod(this.DEFAULT_GET_COLLECTIONS);
-        this.removeMethod(this.DEFAULT_GET_PUBLICATIONS);
-        this.removeCollection(this.DEFAULT_COLLECTION);
-        this.removePublication(this.DEFAULT_PUBLICATION);
+        this.removeMethod(this.HAS_REMOTE_COLLECTIONS_PROVIDER, true);
+        this.removeMethod(this.DEFAULT_GET_COLLECTIONS, true);
+        this.removeMethod(this.DEFAULT_GET_PUBLICATIONS, true);
+        this.removeCollection(this.DEFAULT_COLLECTION, true);
+        this.removePublication(this.DEFAULT_PUBLICATION, true);
     }
 
     //===================================================================================//
@@ -70,7 +70,7 @@ class RemoteProvider {
      * @param funct The function to be executed on remote call
      * @param applyImmediately executes Meteor.methods(...) immediatly. If false you need to call applyAllMethods
      */
-    addMethod(name, funct, applyImmediately) {
+    addMethod(name, funct, applyImmediately=false) {
         check(name, String);
         check(funct, Function);
         check(applyImmediately, Match.Maybe(Boolean));
@@ -83,13 +83,15 @@ class RemoteProvider {
     }
 
     /**
-     * Removes a method from the method-name map AND from Meteor.server.method_handlers
+     * Removes a method from the method-name map and if desired also from Meteor.server.method_handlers
      * @param name Name of the method
+	 * @alsoDeleteOnServer also deletes the function on Meteor.server.method_handlers
      */
-    removeMethod(name) {
+    removeMethod(name, alsoDeleteOnServer=false) {
         check(name, String);
         delete this.methods[name];
-        delete Meteor.server.method_handlers[name];
+        if (alsoDeleteOnServer)
+        	delete Meteor.server.method_handlers[name];
     }
 
     /**
@@ -179,21 +181,25 @@ class RemoteProvider {
      * Adds a publication to the internal map and to the Meteor.server.publish_handlers map.
      * @param name Name of the pub (used for Meteor.subscribe(name))
      * @param funct The function which executes the publication.
+	 * @param applyImmediately also egisters via Meteor.publish
      */
-    addPublication(name, funct) {
+    addPublication(name, funct, applyImmediately=false) {
         check(name, String);
         check(funct, Function);
         this.publications[name] = funct;
-        Meteor.publish(name, funct);
+        if (applyImmediately)
+            Meteor.publish(name, funct);
     }
 
     /**
      * Removes the publication from the internal map and from the Meteor.server.publish_handlers map.
      * @param name Name of the publication to be removed.
+	 * @param alsoDeleteOnServer deletes the pub also in Meteor.server.publish_handlers
      */
-    removePublication(name) {
+    removePublication(name, alsoDeleteOnServer=false) {
         check(name, String);
-        delete Meteor.server.publish_handlers[name];
+        if (alsoDeleteOnServer)
+        	delete Meteor.server.publish_handlers[name];
         delete this.publications[name];
     }
 
