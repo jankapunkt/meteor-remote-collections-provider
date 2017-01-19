@@ -13,8 +13,10 @@ class RemoteProvider {
 		this.collections = {};
 
 		//ERRORS
-		this.CANNOT_ADD_NULL_TO_METHODS = "Cannot add null to Meteor.methods.";
-		this.CANNOT_ADD_NULL_TO_PUBLICATIONS = "Cannot add null to Meteor.publish.";
+		this.CANNOT_ADD_NULL_TO_METHODS = "Cannot add null to Meteor.methods. Requires a function.";
+		this.CANNOT_ADD_NULL_TO_PUBLICATIONS = "Cannot add null to Meteor.publish. Requires a function.";
+
+
 
 		this.DEFAULT_COLLECTION = "tests";
 		this.DEFAULT_PUBLICATION = "tests.public";
@@ -97,7 +99,6 @@ class RemoteProvider {
 
 		if (applyImmediately && !this.isDefined(funct))
 			throw new Meteor.Error(this.CANNOT_ADD_NULL_TO_METHODS);
-
 
 		if (this.isDefined(funct))
 			this.methods[name] = funct;
@@ -241,11 +242,11 @@ class RemoteProvider {
 		check(name, String);
 		check(alsoDeleteOnServer, Match.Maybe(Boolean));
 
-		delete this.publications[name];
 
 		if (alsoDeleteOnServer) {
 			delete Meteor.server.publish_handlers[name];
 		}
+		delete this.publications[name];
 	}
 
 	/**
