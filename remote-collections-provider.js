@@ -12,6 +12,10 @@ class RemoteProvider {
 		this.methods = {};
 		this.collections = {};
 
+		//ERRORS
+		this.CANNOT_ADD_NULL_TO_METHODS = "Cannot add null to Meteor.methods.";
+		this.CANNOT_ADD_NULL_TO_PUBLICATIONS = "Cannot add null to Meteor.publish.";
+
 		this.DEFAULT_COLLECTION = "tests";
 		this.DEFAULT_PUBLICATION = "tests.public";
 		this.DEFAULT_GET_COLLECTIONS = "RemoteProvider.getPrivateDatabases";
@@ -90,7 +94,12 @@ class RemoteProvider {
 		check(name, String);
 		check(funct, Match.Maybe(Function));
 		check(applyImmediately, Match.Maybe(Boolean));
-		if (funct !== null && typeof funct !== 'undefined')
+
+		if (applyImmediately && !this.isDefined(funct))
+			throw new Meteor.Error(this.CANNOT_ADD_NULL_TO_METHODS);
+
+
+		if (this.isDefined(funct))
 			this.methods[name] = funct;
 		else
 			this.methods[name] = name;
@@ -152,10 +161,7 @@ class RemoteProvider {
 		check(name, String);
 		check(schema, Match.Maybe(Object)); //to support various schemata beyond SimpleSchema
 
-		if (schema)
-			console.log("schema => " + schema);
-
-		if (schema !== null && typeof schema !== 'undefined')
+		if (this.isDefined(schema))
 			this.collections[name] = schema;
 		else
 			this.collections[name] = name;
@@ -177,7 +183,7 @@ class RemoteProvider {
 	 */
 	hasCollection(name) {
 		check(name, String);
-		return this.collections[name] !== null && typeof  this.collections[name] !== 'undefined';
+		return this.isDefined(this.collections[name]);
 	}
 
 	/**
@@ -214,7 +220,11 @@ class RemoteProvider {
 		check(name, String);
 		check(funct, Match.Maybe(Function));
 		check(applyImmediately, Match.Maybe(Boolean));
-		if (funct !== null && typeof funct !== 'undefined')
+
+		if (applyImmediately && !this.isDefined(funct))
+			throw new Meteor.Error(this.CANNOT_ADD_NULL_TO_PUBLICATIONS);
+
+		if (this.isDefined(funct))
 			this.publications[name] = funct;
 		else
 			this.publications[name] = name;
@@ -256,6 +266,10 @@ class RemoteProvider {
 	 */
 	getAllPublicationNames() {
 		return Object.keys(this.publications);
+	}
+
+	isDefined(obj) {
+		return obj !== null && typeof obj !== 'undefined';
 	}
 }
 
