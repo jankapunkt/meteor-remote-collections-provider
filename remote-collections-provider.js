@@ -133,6 +133,11 @@ class RemoteProvider {
 		return this.methods[name];
 	}
 
+	getMethodServer(name){
+		check(name, String);
+		return Meteor.server.method_handlers[name];
+	}
+
 	/**
 	 * Returns all stored method names in an unordered array.
 	 * @returns {Array} The sum of all method names.
@@ -190,7 +195,7 @@ class RemoteProvider {
 	/**
 	 * Returns the collection name or a schema, of passed.
 	 * @param name Name of the collection
-	 * @returns {*} A String (name) of the collection
+	 * @returns {*} A String (name) of the collection or a schema, depending on what you added
 	 */
 	getCollection(name) {
 		check(name, String);
@@ -257,6 +262,11 @@ class RemoteProvider {
 	getPublication(name) {
 		check(name, String);
 		return this.publications[name];
+	}
+
+	getPublicationServer(name){
+		check(name, String);
+		return Meteor.server.publish_handlers[name];
 	}
 
 	/**
