@@ -64,6 +64,41 @@ Tinytest.add('remote-collections-provider - init - defaults not callable after i
 	});
 });
 
+Tinytest.add('remote-collections-provider - clear - clears all reference', function(test){
+
+	addToCollection(test, "someCollection", null);
+	addMethod(test, "newMethod",()=>{return "newMethod"},true);
+	addPublication(test, "newPub", ()=>{return "newPub"},true);
+
+	//hard remove
+	RemoteCollectionsProvider.clear(true);
+
+	test.equal(RemoteCollectionsProvider.getAllCollectionNames(),{});
+	test.equal(RemoteCollectionsProvider.getAllPublicationNames(),{});
+	test.equal(RemoteCollectionsProvider.getAllMethodNames(),{});
+
+	test.throws(function () {
+		Meteor.call("newMethod");
+	});
+
+	//soft remove
+	addToCollection(test, "someCollection", null);
+	addMethod(test, "newMethod",()=>{return "newMethod"},true);
+	addPublication(test, "newPub", ()=>{return "newPub"},true);
+
+
+	RemoteCollectionsProvider.clear();
+
+	test.equal(RemoteCollectionsProvider.getAllCollectionNames(),{});
+	test.equal(RemoteCollectionsProvider.getAllPublicationNames(),{});
+	test.equal(RemoteCollectionsProvider.getAllMethodNames(),{});
+
+	testMethodCall(test, "newMethod", "newMethod");
+
+	//finally remove also from server
+	RemoteCollectionsProvider.removeMethod("newMethod", true);
+});
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -76,11 +111,28 @@ const methodFct = function () {
 }
 
 Tinytest.add('remote-collections-provider - methods - methods added working', function (test) {
-	addMethod(test, methodName, methodFct, true)
+	RemoteCollectionsProvider.clear(true);
+
+	//if we add a method by name it should store the method ref
+	addMethod(test, methodName, methodFct, true);
+	test.equal(RemoteCollectionsProvider.getMethod(methodName), methodFct, "unexpected instance match");
 	testMethodCall(test, methodName, "theMethod");
+
+	//if we add just a name it should store the name
+	removeMethod(test, methodName, true);
+	addMethod(test, methodName, null, null);
+	test.equal(RemoteCollectionsProvider.getMethod(methodName), methodName);
+	test.throws(function () {
+		Meteor.call(methodName);
+	});
+
 });
 
 Tinytest.add('remote-collections-provider - methods - methods remove working', function (test) {
+	RemoteCollectionsProvider.clear(true);
+
+
+	addMethod(test, methodName, methodFct, true);
 	removeMethod(test, methodName, true);
 	test.throws(function () {
 		Meteor.call(methodName);
@@ -88,6 +140,8 @@ Tinytest.add('remote-collections-provider - methods - methods remove working', f
 });
 
 Tinytest.add('remote-collections-provider - methods - methods retrieve working', function (test) {
+	RemoteCollectionsProvider.clear(true);
+
 	addMethod(test, methodName, methodFct, true)
 
 	const retrievedMethod = RemoteCollectionsProvider.getMethod(methodName);
@@ -97,13 +151,15 @@ Tinytest.add('remote-collections-provider - methods - methods retrieve working',
 });
 
 Tinytest.add('remote-collections-provider - methods - get all methods working', function (test) {
+	RemoteCollectionsProvider.clear(true);
+
+	addMethod(test, methodName, methodFct, true)
 	testAllAddedEntries(test, RemoteCollectionsProvider.getAllMethodNames(), 1);
 });
 
 
 Tinytest.add('remote-collections-provider - methods - methods apply working', function (test) {
-	//first remove last method
-	removeMethod(test, methodName, true);
+	RemoteCollectionsProvider.clear(true);
 
 	addMethod(test, methodName, methodFct, false); //dont apply immediately
 	test.throws(function () { //to throw a call error
@@ -121,19 +177,44 @@ Tinytest.add('remote-collections-provider - methods - methods apply working', fu
 const collectionName = "someCollection";
 
 Tinytest.add('remote-collections-provider - collections - collection names are added', function (test) {
+	RemoteCollectionsProvider.clear(true);
+
+	//add collecition name
 	addToCollection(test, collectionName);
+	const collectionRef = RemoteCollectionsProvider.getCollection(collectionName);
+	testExists(test, collectionRef);
+	test.equal(collectionRef, collectionName);
+
+	removeCollection(test, collectionName);
+
+	//add collection schema
+	const schemaObj = {title:{type:String}};
+	addToCollection(test, collectionName, schemaObj); //keep it easy, avoid coupling to SimpleSchema here
+	const schemaRef = RemoteCollectionsProvider.getCollection(collectionName);
+	testExists(test, schemaRef);
+	test.equal(schemaRef, schemaObj);
+
 });
 
 Tinytest.add('remote-collections-provider - collections - collection names can be removed', function (test) {
+	RemoteCollectionsProvider.clear(true);
+
+	addToCollection(test, collectionName);
 	removeCollection(test, collectionName);
+	testExistsNot(test, RemoteCollectionsProvider.getCollection(collectionName));
 });
 
 Tinytest.add('remote-collections-provider - collections - collection names can be checke dif exist', function (test) {
+	RemoteCollectionsProvider.clear(true);
+
 	addToCollection(test, collectionName);
 	test.equal(RemoteCollectionsProvider.hasCollection(collectionName), true);
 });
 
 Tinytest.add('remote-collections-provider - collections - all collections can be retrieved', function (test) {
+	RemoteCollectionsProvider.clear(true);
+
+	addToCollection(test, collectionName);
 	testAllAddedEntries(test, RemoteCollectionsProvider.getAllCollectionNames(), 1);
 });
 
@@ -148,22 +229,43 @@ const publicationFunction = function () {
 	return testCollection.find({});
 }
 
-Tinytest.add('remote-collections-provider - pubications - publications are added', function (test) {
-	addPublication(test, publicationName, publicationFunction);
-});
+Tinytest.add('remote-collections-provider - publications - publications are added', function (test) {
+	RemoteCollectionsProvider.clear(true);
 
-Tinytest.add('remote-collections-provider - pubications - publications names can be removed', function (test) {
+	//add as function
+	addPublication(test, publicationName, publicationFunction, true);
+	test.equal(RemoteCollectionsProvider.getPublication(publicationName), publicationFunction);
+
 	removePublication(test, publicationName, true);
+
+	//add as name
+	addPublication(test, publicationName, null, null);
+	test.equal(RemoteCollectionsProvider.getPublication(publicationName), publicationName);
+
+
 });
 
-Tinytest.add('remote-collections-provider - pubications - publications can be retrieved', function (test) {
-	addPublication(test, publicationName, publicationFunction);
+Tinytest.add('remote-collections-provider - publications - publications names can be removed', function (test) {
+	RemoteCollectionsProvider.clear(true);
+
+	addPublication(test, publicationName, publicationFunction, true);
+	removePublication(test, publicationName, true);
+	testExistsNot(test, RemoteCollectionsProvider.getPublication(publicationName));
+
+});
+
+Tinytest.add('remote-collections-provider - publications - single publication can be retrieved', function (test) {
+	RemoteCollectionsProvider.clear(true);
+
+	addPublication(test, publicationName, publicationFunction, true);
 	const retrievedPub = RemoteCollectionsProvider.getPublication(publicationName);
 	testExists(test, retrievedPub, publicationName);
 	test.equal(retrievedPub, publicationFunction);
 });
 
-Tinytest.add('remote-collections-provider - pubications - all publications can be retrieved', function (test) {
+Tinytest.add('remote-collections-provider - publications - all publications can be retrieved', function (test) {
+	RemoteCollectionsProvider.clear(true);
+	addPublication(test, publicationName, publicationFunction, true);
 	testAllAddedEntries(test, RemoteCollectionsProvider.getAllPublicationNames(), 1);
 });
 
@@ -210,9 +312,9 @@ function addMethod(test, methodName, method, applyImmediately = true) {
 	testExists(test, RemoteCollectionsProvider.getMethod(methodName), methodName);
 }
 
-function addToCollection(test, collectionName) {
+function addToCollection(test, collectionName, optionalSchema=null) {
 	testExistsNot(test, RemoteCollectionsProvider.getCollection(collectionName), collectionName);
-	RemoteCollectionsProvider.addCollectionNames(collectionName);
+	RemoteCollectionsProvider.addCollectionNames(collectionName, optionalSchema);
 	testExists(test, RemoteCollectionsProvider.getCollection(collectionName), collectionName);
 }
 
@@ -222,16 +324,25 @@ function removeCollection(test, collectionName) {
 	testExistsNot(test, RemoteCollectionsProvider.getCollection(collectionName), collectionName);
 }
 
-function addPublication(test, publication, pubFunc) {
+function addPublication(test, publication, pubFunc, applyImmediately) {
 	//TEST IF NOT EXISTS
 	testExistsNot(test, RemoteCollectionsProvider.getPublication(publication), publication);
 	testExistsNot(test, Meteor.server.publish_handlers[publication], "publish handler");
 	//ADD
-	RemoteCollectionsProvider.addPublication(publication, pubFunc, true);
-	//TEST IF EXISTS
-	testExists(test, RemoteCollectionsProvider.getPublication(publication), publication);
-	testExists(test, Meteor.server.publish_handlers[publication], "publish handler");
-	test.equal(Meteor.server.publish_handlers[publication], pubFunc);
+	RemoteCollectionsProvider.addPublication(publication, pubFunc, applyImmediately);
+
+	if (pubFunc) {
+		testExists(test, RemoteCollectionsProvider.getPublication(publication), publication);
+		testExists(test, Meteor.server.publish_handlers[publication], "publish handler");
+		test.equal(RemoteCollectionsProvider.getPublication(publication), pubFunc);
+		test.equal(Meteor.server.publish_handlers[publication], pubFunc);
+	}else{
+		testExists(test, RemoteCollectionsProvider.getPublication(publication), publication);
+		testExistsNot(test, Meteor.server.publish_handlers[publication]);
+		test.equal(RemoteCollectionsProvider.getPublication(publication), publication);
+	}
+
+
 }
 
 function removePublication(test, publication, alsoRemoveFromServer) {
