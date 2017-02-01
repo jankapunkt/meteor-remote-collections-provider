@@ -56,7 +56,7 @@ class RemoteProvider {
 	}
 
 	clear(alsoClearOnServer=false) {
-		check(alsoClearOnServer, Match.Maybe(Boolean));
+		check(alsoClearOnServer, Match.OneOf(null, undefined, Boolean));
 		if (alsoClearOnServer) {
 			for (let pubKey in this.publications)
 				this.removePublication(pubKey, alsoClearOnServer);
@@ -94,8 +94,8 @@ class RemoteProvider {
 	 */
 	addMethod(name, funct=null, applyImmediately = false) {
 		check(name, String);
-		check(funct, Match.Maybe(Function));
-		check(applyImmediately, Match.Maybe(Boolean));
+		check(funct, Match.OneOf(null, undefined, Function));
+		check(applyImmediately, Match.OneOf(null, undefined, Boolean));
 
 		if (applyImmediately && !this.isDefined(funct))
 			throw new Meteor.Error(this.CANNOT_ADD_NULL_TO_METHODS);
@@ -165,7 +165,7 @@ class RemoteProvider {
 	 */
 	addCollectionNames(name, schema = null) {
 		check(name, String);
-		check(schema, Match.Maybe(Object)); //to support various schemata beyond SimpleSchema
+		check(schema, Match.OneOf(null, undefined, Object)); //to support various schemata beyond SimpleSchema
 
 		if (this.isDefined(schema))
 			this.collections[name] = schema;
@@ -224,8 +224,8 @@ class RemoteProvider {
 	 */
 	addPublication(name, funct=null, applyImmediately = false) {
 		check(name, String);
-		check(funct, Match.Maybe(Function));
-		check(applyImmediately, Match.Maybe(Boolean));
+		check(funct, Match.OneOf(null, undefined, Function));
+		check(applyImmediately, Match.OneOf(null, undefined, Boolean));
 
 		if (applyImmediately && !this.isDefined(funct))
 			throw new Meteor.Error(this.CANNOT_ADD_NULL_TO_PUBLICATIONS);
@@ -245,7 +245,7 @@ class RemoteProvider {
 	 */
 	removePublication(name, alsoDeleteOnServer = false) {
 		check(name, String);
-		check(alsoDeleteOnServer, Match.Maybe(Boolean));
+		check(alsoDeleteOnServer, Match.OneOf(null, undefined, Boolean));
 
 
 		if (alsoDeleteOnServer) {
